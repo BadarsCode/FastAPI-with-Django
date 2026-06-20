@@ -146,3 +146,49 @@ def delete_user(id: int, db: Session = Depends(get_db)):
     return {
         'message': "user Deleted Successfully"
     }
+
+
+# Register authentication api 
+
+from auth import hash_password
+
+@app.post('/register', response_model=UserResponse) 
+def register_user(
+    user: UserCreate, 
+    db: Session = Depends(get_db)):
+
+    hashed = hash_password(user.password)
+
+    new_user = models.User(
+        name=user.name, 
+        email=user.email,
+        password=hashed 
+    )
+
+    db.add(new_user)
+    db.commit() 
+    db.refresh(new_user)
+
+    return new_user
+
+# Login API
+
+from fastapi.security import OAuth2PasswordRequestForm 
+from auth import create_access_token, verify_password 
+from fastapi import HTTPException
+
+@app.post("/login") 
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == form_data.username).first() 
+    if not user: 
+        raise HTTPException(status_code=404, detail = 'User Not Found')
+    
+    if not verify_password(form_data.password, user.password):
+        raise HTTPException(status_code=401, detail = 'Incorrect Password') 
+    
+    token = create_access_token(data={'sub': user.email})
+
+    return {
+        'access_token': token,
+        'token_type': 'bearer'
+    }
