@@ -192,3 +192,34 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         'access_token': token,
         'token_type': 'bearer'
     }
+
+
+
+
+# protected Route 
+
+from auth import oauth2_scheme, verify_token
+
+@app.get('/profile')
+def profile(token: str = Depends(oauth2_scheme)):
+    email = verify_token(token)
+
+    if not email: 
+        raise HTTPException(status_code=401, detail = 'Invalid Token')
+    
+    return {
+        'message': 'Protected Route',
+        'user': email
+    }
+
+
+# me
+from auth import get_current_user
+@app.get('/me')
+def me(
+    user: str = Depends(get_current_user)
+    ):
+
+    return {
+        'current_user': user
+    }
