@@ -223,3 +223,23 @@ def me(
     return {
         'current_user': user
     }
+
+
+# logs 
+from logs.logs import write_log 
+from fastapi import BackgroundTasks
+
+@app.post('/send')
+async def send_message(background_tasks: BackgroundTasks):
+    background_tasks.add_task(write_log, 'This is a log message')
+
+    return {
+        'message': 'Send Successfully'
+    }
+
+
+# File Upload api
+
+from upload.upload import router as uploadapi
+
+app.include_router(uploadapi)
