@@ -243,3 +243,21 @@ async def send_message(background_tasks: BackgroundTasks):
 from upload.upload import router as uploadapi
 
 app.include_router(uploadapi)
+
+
+
+
+# WebSockets 
+
+
+from fastapi import WebSocket 
+
+@app.websocket('/ws')
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept() 
+    while True:
+        data = await websocket.receive()
+
+        await websocket.send_text(
+            f"message : {data}"
+        )
